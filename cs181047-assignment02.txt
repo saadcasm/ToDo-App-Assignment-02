@@ -1,0 +1,197 @@
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Button,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
+import { Checkbox } from "react-native-paper";
+import { AntDesign, Feather } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+export default function App() {
+  const [todoList, setTodoList] = useState([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [searchList, setSearchList] = useState();
+
+  const handleChange = (edit, setState) => {
+    setState(edit);
+  };
+
+  const handlerSubmit = async () => {
+    if ((description && title) !== "") {
+      let newTodoItems = [
+        ...todoList,
+        { title: title, description: description, status: false },
+      ];
+      setTodoList(newTodoItems);
+      await AsyncStorage.setItem("List", JSON.stringify(newTodoItems));
+    }
+  };
+
+  const DeleteData = (item) => {
+    const deleteTodo = todoList.filter((data, index) => index != item);
+    setTodoList(deleteTodo);
+  };
+
+  const ChangeStatus = (item) => {
+    const previsousData = {
+      description: item?.item?.description,
+      title: item?.item?.title,
+      status: !item?.item?.status,
+    };
+    const doneTask = todoList.filter((data, index) => index != item?.index);
+    let newTodoItems = [...doneTask, previsousData];
+    setTodoList(newTodoItems);
+  };
+  const SearchTitle = (e) => {
+    console.log(e);
+    const searchListValue = todoList.filter((data) => data?.title == e);
+    console.log("Search List Value", searchListValue);
+    setSearchList([searchListValue]);
+  };
+  const TodoData = (item) => {
+    console.log("ITEM", item);
+    return (
+      <>
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingVertical: 20,
+            borderRadius: 5,
+            backgroundColor: "#F6F7F9",
+            marginVertical: 20,
+            alignItems: "center",
+            borderWidth: 5,
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <View>
+            <Checkbox
+              status={item?.item?.status ? "checked" : "unchecked"}
+              onPress={() => {
+                ChangeStatus(item);
+              }}
+            />
+          </View>
+          <View>
+            <Text>{item?.item?.title}</Text>
+            <Text>{item?.item?.description}</Text>
+          </View>
+          <TouchableOpacity onPress={() => DeleteData(item?.index)}>
+            <AntDesign name="delete" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
+      </>
+    );
+  };
+  return (
+    <>
+      <View style={styles.container}>
+        <View
+          style={{
+            alignItems: "center",
+            justifyContent: "center",
+            marginVertical: 10,
+          }}
+        >
+          <Text style={{ fontSize: 35, fontWeight: "bold" }}>TODO LIST APP</Text>
+        </View>
+        <View
+          style={{
+            borderWidth: 5,
+            borderColor: "#4A235A",
+            borderRadius: 50,
+            backgroundColor: "#E8DAEF",
+            paddingHorizontal: 40,
+            paddingVertical: 15,
+          }}
+        >
+          <TextInput
+            placeholder="Enter Title"
+            onChangeText={(edit) => handleChange(edit, setTitle)}
+            style={{
+              color: "#6C3483",
+              fontSize: 18,
+              fontWeight: "bold"
+            }}
+          />
+          <TextInput
+            placeholder="Enter Description"
+            onChangeText={(edit) => handleChange(edit, setDescription)}
+            style={{
+              color: "#884EA0",
+              fontSize: 15,
+              height: 100
+            }}
+            multiline={true}
+          />
+        </View>
+        <View
+          style={{
+            marginTop: 20,
+            justifyContent: "flex-end",
+            alignItems: "flex-end",
+          }}
+        >
+          <TouchableOpacity
+            onPress={handlerSubmit}
+            style={{
+              borderWidth: 5,
+              width: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 50,
+              paddingVertical: 20,
+              borderColor: "#330066",
+              borderRadius: 50,
+              backgroundColor: "#A569BD",
+            }}
+          >
+            <Text style={{ color: "#ffffff", fontSize: 20 }}>Submit</Text>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={{
+            borderWidth: 5,
+            borderColor: "black",
+            borderRadius: 50,
+            backgroundColor: "#9999FF",
+            paddingHorizontal: 20,
+            paddingVertical: 5,
+            marginTop: 30,
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <TextInput
+            placeholder="Search Title"
+            onChangeText={(e) => SearchTitle(e)}
+            style={{
+              fontSize: 15,
+              color: "#fff",
+            }}
+          />
+        </View>
+          <FlatList
+            extraData={todoList}
+            renderItem={TodoData}
+            data={todoList}
+          />
+      </View>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    marginTop: 50,
+    paddingHorizontal: 20,
+  },
+});
